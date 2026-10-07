@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم - قمرة القيادة</title>
+    <script src="ui-sounds.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -299,6 +300,66 @@
             </form>
         </div>
 
+        <section class="bg-darkCard border border-darkBorder rounded-3xl p-6 md:p-8 space-y-5">
+            <div class="border-b border-darkBorder pb-4">
+                <h2 class="text-lg font-bold text-white">
+                    <i class="fa-solid fa-link ml-2 text-sky-400"></i> مصادر الموضوعات
+                </h2>
+                <p class="text-xs text-gray-400 mt-1">أضف روابط المصادر لتظهر كأزرار داخل صفحة عرض الموضوع في القسم الذي تختاره.</p>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-300 mb-2" for="source-topic-select">الموضوع والقسم</label>
+                <select id="source-topic-select" onchange="renderTopicSources()" class="w-full bg-darkInput border border-darkBorder rounded-xl px-4 py-3 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-500"></select>
+            </div>
+            <form id="source-form" class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-2" for="source-name">اسم المصدر</label>
+                    <input id="source-name" type="text" maxlength="100" required placeholder="مثال: وكالة ناسا" class="w-full bg-darkInput border border-darkBorder rounded-xl px-4 py-3 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-2" for="source-url">رابط المصدر</label>
+                    <input id="source-url" type="url" required placeholder="https://example.com" class="w-full bg-darkInput border border-darkBorder rounded-xl px-4 py-3 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-500" dir="ltr">
+                </div>
+                <div class="md:col-span-2 flex justify-end">
+                    <button type="submit" class="px-6 py-3 bg-gradient-to-r from-sky-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg transition text-sm">
+                        <i class="fa-solid fa-plus ml-2"></i> مصدر جديد
+                    </button>
+                </div>
+            </form>
+            <div>
+                <h3 class="text-sm font-bold text-gray-200 mb-3">مصادر الموضوع المحدد</h3>
+                <div id="topic-source-list" class="space-y-2"></div>
+            </div>
+            <div class="space-y-4 border-t border-darkBorder pt-5">
+                <div>
+                    <h3 class="text-sm font-bold text-gray-200">حساب كاتب الموضوع</h3>
+                    <p class="mt-1 text-xs text-gray-400">أضف رابط حساب الكاتب واختر المنصة لتظهر أيقونتها أعلى الموضوع.</p>
+                </div>
+                <form id="author-profile-form" class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-2" for="author-profile-platform">منصة التواصل</label>
+                        <select id="author-profile-platform" class="w-full bg-darkInput border border-darkBorder rounded-xl px-4 py-3 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                            <option value="instagram">إنستغرام</option>
+                            <option value="tiktok">تيك توك</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-2" for="author-profile-url">رابط حساب الكاتب</label>
+                        <input id="author-profile-url" type="url" placeholder="https://www.instagram.com/username" class="w-full bg-darkInput border border-darkBorder rounded-xl px-4 py-3 text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-500" dir="ltr">
+                    </div>
+                    <div class="md:col-span-2 flex items-center justify-end gap-3">
+                        <button id="remove-author-profile" type="button" onclick="removeAuthorProfile()" class="hidden px-4 py-3 rounded-xl border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 text-sm font-bold transition">
+                            إزالة الحساب
+                        </button>
+                        <button type="submit" class="px-6 py-3 bg-gradient-to-r from-sky-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg transition text-sm">
+                            <i class="fa-solid fa-floppy-disk ml-2"></i> حفظ حساب الكاتب
+                        </button>
+                    </div>
+                </form>
+                <p id="author-profile-status" class="text-xs text-gray-400" aria-live="polite"></p>
+            </div>
+        </section>
+
         <div class="bg-darkCard border border-darkBorder rounded-3xl p-6 md:p-8 space-y-6">
             <div class="flex items-center justify-between border-b border-darkBorder pb-4 flex-wrap gap-3">
                 <h3 class="text-lg font-bold text-white">
@@ -590,6 +651,22 @@
                     if (typeof safeItem.title === 'string') safeItem.title = sanitizePlainText(safeItem.title);
                     if (typeof safeItem.category === 'string') safeItem.category = sanitizePlainText(safeItem.category);
                     if (typeof safeItem.content === 'string') safeItem.content = sanitizeHtmlFragment(safeItem.content);
+                    safeItem.sources = Array.isArray(safeItem.sources)
+                        ? safeItem.sources
+                            .filter(source => source && typeof source === 'object')
+                            .map(source => ({
+                                id: String(source.id || ''),
+                                name: sanitizePlainText(source.name || ''),
+                                url: safeExternalSourceUrl(source.url)
+                            }))
+                            .filter(source => source.name && source.url)
+                        : [];
+                    const profile = safeItem.authorProfile;
+                    safeItem.authorProfile = profile && typeof profile === 'object' &&
+                        ['instagram', 'tiktok'].includes(profile.platform) &&
+                        safeExternalSourceUrl(profile.url)
+                        ? { platform: profile.platform, url: safeExternalSourceUrl(profile.url) }
+                        : null;
                     return safeItem;
                 });
             });
@@ -641,6 +718,15 @@
             if (!src) return '';
             if (/^(https?:\/\/|blob:|data:image\/)/i.test(src)) return src;
             return '';
+        }
+
+        function safeExternalSourceUrl(value) {
+            try {
+                const url = new URL(String(value ?? '').trim());
+                return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+            } catch {
+                return '';
+            }
         }
 
         function sanitizeHtmlFragment(rawHtml) {
@@ -742,6 +828,196 @@
                 unifiedData = normalizeData({});
                 console.error('تعذر تحميل البيانات من Supabase:', error);
                 showToast('❌ تعذر تحميل البيانات من Supabase');
+            }
+        }
+
+        const SOURCE_SECTION_CONFIG = {
+            articles: { key: 'articles', label: 'المقالات' },
+            books: { key: 'books', label: 'ركن القراءة' },
+            chess: { key: 'chess', label: 'الشطرنج' },
+            momagat: { key: 'momagat', label: 'مماقات' }
+        };
+
+        function getSourceTopicSelection() {
+            const select = document.getElementById('source-topic-select');
+            if (!select.value) return null;
+            try {
+                const selection = JSON.parse(select.value);
+                const section = SOURCE_SECTION_CONFIG[selection.sectionKey];
+                if (!section) return null;
+                const topic = (getUnifiedData()[section.key] || []).find(item => String(item.id) === String(selection.id));
+                return topic ? { sectionKey: section.key, topic } : null;
+            } catch {
+                return null;
+            }
+        }
+
+        function refreshSourceTopicOptions() {
+            const select = document.getElementById('source-topic-select');
+            const previousValue = select.value;
+            const data = getUnifiedData();
+            const options = [];
+
+            Object.entries(SOURCE_SECTION_CONFIG).forEach(([sectionKey, section]) => {
+                (data[section.key] || []).forEach(topic => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify({ sectionKey, id: topic.id });
+                    option.textContent = `${section.label} — ${topic.title || 'موضوع بلا عنوان'}`;
+                    options.push(option);
+                });
+            });
+
+            select.replaceChildren(...options);
+            if (options.some(option => option.value === previousValue)) {
+                select.value = previousValue;
+            }
+            select.disabled = options.length === 0;
+            document.getElementById('source-form').querySelector('button[type="submit"]').disabled = options.length === 0;
+            document.getElementById('author-profile-form').querySelector('button[type="submit"]').disabled = options.length === 0;
+            renderTopicSources();
+        }
+
+        function renderTopicSources() {
+            const list = document.getElementById('topic-source-list');
+            const selection = getSourceTopicSelection();
+            list.replaceChildren();
+            renderAuthorProfileForm(selection);
+            if (!selection) {
+                const empty = document.createElement('p');
+                empty.className = 'rounded-xl border border-darkBorder bg-darkInput/50 p-4 text-xs text-gray-500';
+                empty.textContent = 'انشر موضوعًا أولًا لتتمكن من إضافة مصدر إليه.';
+                list.appendChild(empty);
+                return;
+            }
+
+            const { topic } = selection;
+            if (!topic.sources.length) {
+                const empty = document.createElement('p');
+                empty.className = 'rounded-xl border border-darkBorder bg-darkInput/50 p-4 text-xs text-gray-500';
+                empty.textContent = 'لا توجد مصادر مضافة لهذا الموضوع بعد.';
+                list.appendChild(empty);
+                return;
+            }
+
+            topic.sources.forEach(source => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between gap-3 rounded-xl border border-darkBorder bg-darkInput/50 p-3';
+                const details = document.createElement('div');
+                details.className = 'min-w-0';
+                const name = document.createElement('p');
+                name.className = 'truncate text-sm font-bold text-gray-200';
+                name.textContent = source.name;
+                const url = document.createElement('p');
+                url.className = 'truncate text-xs text-gray-500';
+                url.textContent = source.url;
+                details.append(name, url);
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'shrink-0 rounded-lg p-2 text-gray-400 hover:bg-rose-500/10 hover:text-rose-400';
+                remove.setAttribute('aria-label', `حذف مصدر ${source.name}`);
+                remove.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+                remove.addEventListener('click', () => deleteTopicSource(source.id));
+                row.append(details, remove);
+                list.appendChild(row);
+            });
+        }
+
+        function renderAuthorProfileForm(selection) {
+            const form = document.getElementById('author-profile-form');
+            const profile = selection?.topic.authorProfile;
+            document.getElementById('author-profile-platform').value = profile?.platform || 'instagram';
+            document.getElementById('author-profile-url').value = profile?.url || '';
+            document.getElementById('remove-author-profile').classList.toggle('hidden', !profile);
+            document.getElementById('author-profile-status').textContent = selection
+                ? (profile ? 'يوجد حساب محفوظ لهذا الموضوع.' : 'لا يوجد حساب محفوظ لهذا الموضوع.')
+                : 'اختر موضوعًا أولًا لإضافة حساب الكاتب.';
+            form.querySelector('button[type="submit"]').disabled = !selection;
+            document.getElementById('author-profile-platform').disabled = !selection;
+            document.getElementById('author-profile-url').disabled = !selection;
+        }
+
+        async function saveAuthorProfile(event) {
+            event.preventDefault();
+            const selection = getSourceTopicSelection();
+            if (!selection) {
+                showToast('⚠️ اختر موضوعًا أولًا');
+                return;
+            }
+            const platform = document.getElementById('author-profile-platform').value;
+            const url = safeExternalSourceUrl(document.getElementById('author-profile-url').value);
+            if (!['instagram', 'tiktok'].includes(platform) || !url) {
+                showToast('⚠️ أدخل رابط حساب صالحًا يبدأ بـ http أو https');
+                return;
+            }
+
+            selection.topic.authorProfile = { platform, url };
+            try {
+                await saveUnifiedData(getUnifiedData());
+                renderAuthorProfileForm(getSourceTopicSelection());
+                showToast('✅ تم حفظ حساب الكاتب');
+            } catch (error) {
+                console.error('تعذر حفظ حساب الكاتب:', error);
+            }
+        }
+
+        async function removeAuthorProfile() {
+            const selection = getSourceTopicSelection();
+            if (!selection || !selection.topic.authorProfile || !confirm('إزالة حساب الكاتب من هذا الموضوع؟')) return;
+            selection.topic.authorProfile = null;
+            try {
+                await saveUnifiedData(getUnifiedData());
+                renderAuthorProfileForm(getSourceTopicSelection());
+                showToast('🗑️ تمت إزالة حساب الكاتب');
+            } catch (error) {
+                console.error('تعذر إزالة حساب الكاتب:', error);
+            }
+        }
+
+        async function addTopicSource(event) {
+            event.preventDefault();
+            const selection = getSourceTopicSelection();
+            if (!selection) {
+                showToast('⚠️ اختر موضوعًا أولًا');
+                return;
+            }
+
+            const name = sanitizePlainText(document.getElementById('source-name').value.trim());
+            const url = safeExternalSourceUrl(document.getElementById('source-url').value);
+            if (!name || !url) {
+                showToast('⚠️ أدخل اسم المصدر ورابطًا صالحًا يبدأ بـ http أو https');
+                return;
+            }
+
+            const { topic } = selection;
+            if (!Array.isArray(topic.sources)) topic.sources = [];
+            topic.sources.push({
+                id: typeof crypto?.randomUUID === 'function'
+                    ? crypto.randomUUID()
+                    : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+                name,
+                url
+            });
+
+            try {
+                await saveUnifiedData(getUnifiedData());
+                document.getElementById('source-form').reset();
+                refreshSourceTopicOptions();
+                showToast('✅ تمت إضافة المصدر');
+            } catch (error) {
+                console.error('تعذر حفظ مصدر الموضوع:', error);
+            }
+        }
+
+        async function deleteTopicSource(sourceId) {
+            const selection = getSourceTopicSelection();
+            if (!selection || !confirm('حذف هذا المصدر؟')) return;
+            selection.topic.sources = selection.topic.sources.filter(source => source.id !== sourceId);
+            try {
+                await saveUnifiedData(getUnifiedData());
+                refreshSourceTopicOptions();
+                showToast('🗑️ تم حذف المصدر');
+            } catch (error) {
+                console.error('تعذر حذف مصدر الموضوع:', error);
             }
         }
 
@@ -1217,6 +1493,7 @@
             const data = getUnifiedData();
             const tbody = document.getElementById('db-table-body');
             tbody.innerHTML = '';
+            refreshSourceTopicOptions();
             refreshTemplateControls();
             renderCustomTemplates();
 
@@ -1289,6 +1566,8 @@
             document.getElementById('template-image-input')
                 .addEventListener('change', handleTemplateImageSelection);
             document.getElementById('login-form').addEventListener('submit', signInDashboard);
+            document.getElementById('source-form').addEventListener('submit', addTopicSource);
+            document.getElementById('author-profile-form').addEventListener('submit', saveAuthorProfile);
         });
     </script>
 </body>
